@@ -1,0 +1,9 @@
+services:
+  floci:
+    image: floci/floci:latest
+    ports:
+      - "4566:4566"
+    # Si vas a usar servicios como EC2/ECS/EKS reales dentro de Floci, 
+    # necesitarás mapear el socket de Docker:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
