@@ -1,0 +1,78 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Documento {
+  creado_por: String!
+  created_at: DateTime!
+  deleted_at: DateTime
+  documentoAuditoria: [DocumentoAuditoria!]!
+  documentoEntidad: [DocumentoEntidad!]!
+  documentoPermiso: [DocumentoPermiso!]!
+  estado: String!
+  id: ID!
+  mime_type: String!
+  nombre_original: String!
+  s3_key: String!
+  tamano_bytes: String!
+  updated_at: DateTime!
+}
+
+type DocumentoAuditoria {
+  accion: String!
+  created_at: DateTime!
+  deleted_at: DateTime
+  detalles: JSON!
+  documento: Documento!
+  id: ID!
+  updated_at: DateTime!
+  usuario_id: String!
+}
+
+type DocumentoEntidad {
+  documento: Documento!
+  entidad_id: String!
+  entidad_tipo: String!
+  id: String!
+}
+
+type DocumentoPermiso {
+  created_at: DateTime!
+  documento: Documento!
+  id: ID!
+  nivel_acceso: NivelAcceso!
+  updated_at: DateTime!
+  usuario_id: String!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type Mutation {
+  eliminarDocumento(documentoId: String!, usuarioId: String!): Boolean!
+  subirDocumento(file: Upload!, usuarioId: String!): Documento!
+}
+
+"""Nivel de acceso de un usuario sobre un documento"""
+enum NivelAcceso {
+  ESCRITURA
+  LECTURA
+  PROPIETARIO
+}
+
+type Query {
+  listarAuditoria(documentoId: String!): [DocumentoAuditoria!]!
+  listarAuditoriaGlobal(limite: Int): [DocumentoAuditoria!]!
+  obtenerDocumentos: [Documento!]!
+  obtenerLinkDocumento(documentoId: String!, usuarioId: String!): String!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
