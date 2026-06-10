@@ -19,7 +19,7 @@ export class DocumentoAuditoria {
   id!: string;
 
   @Field()
-  @Column({ type: 'varchar', length: 15 })
+  @Column({ type: 'varchar', length: 30 })
   accion!: string;
 
   @Field(() => GraphQLJSON)
