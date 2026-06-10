@@ -1,15 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleInit {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
   private readonly logger = new Logger(StorageService.name);
@@ -37,6 +39,34 @@ export class StorageService {
       // forcePathStyle debe ser true para herramientas locales estilo S3 como Flocci/MinIO
       forcePathStyle: true,
     });
+  }
+
+  async onModuleInit() {
+    await this.asegurarBucket();
+  }
+
+  private async asegurarBucket() {
+    try {
+      await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
+      this.logger.log(`El bucket '${this.bucketName}' ya existe.`);
+    } catch (error: any) {
+      const errorName = error.name || error.Code || '';
+      if (
+        errorName === 'NotFound' ||
+        errorName === 'NoSuchBucket' ||
+        (error.$metadata && error.$metadata.httpStatusCode === 404)
+      ) {
+        this.logger.warn(`El bucket '${this.bucketName}' no existe. Intentando crearlo...`);
+        try {
+          await this.s3Client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
+          this.logger.log(`Bucket '${this.bucketName}' creado exitosamente.`);
+        } catch (createError) {
+          this.logger.error(`Error creando el bucket '${this.bucketName}':`, createError);
+        }
+      } else {
+        this.logger.error(`Error verificando el bucket '${this.bucketName}':`, error);
+      }
+    }
   }
 
   /**

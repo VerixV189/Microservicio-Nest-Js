@@ -14,6 +14,10 @@ const ALLOWED_MIME = [
   'application/pdf',
   'text/plain',
   'application/zip',
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'video/3gpp',
 ];
 
 @Resolver(() => Documento)
