@@ -8,7 +8,10 @@ export class BlockchainService {
 
   constructor(private readonly configService: ConfigService) {
     // Default to localhost:3001 (Node 1) to avoid port conflicts with port 3000
-    this.blockchainUrl = this.configService.get<string>('BLOCKCHAIN_NODE_URL', 'http://localhost:3001');
+    this.blockchainUrl = this.configService.get<string>(
+      'BLOCKCHAIN_NODE_URL',
+      'http://localhost:3001',
+    );
   }
 
   /**
@@ -24,26 +27,36 @@ export class BlockchainService {
         signature: 'SYSTEM_AUDIT_LOG_SIGNATURE',
       };
 
-      const response = await fetch(`${this.blockchainUrl}/api/blockchain/transaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${this.blockchainUrl}/api/blockchain/transaction`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (!response.ok) {
         const errResult = await response.json();
-        this.logger.error(`Error al enviar transaccion a blockchain: ${JSON.stringify(errResult)}`);
+        this.logger.error(
+          `Error al enviar transaccion a blockchain: ${JSON.stringify(errResult)}`,
+        );
         return false;
       }
 
-      this.logger.log(`Transaccion enviada con exito al blockchain para el destinatario: ${recipient}`);
-      
+      this.logger.log(
+        `Transaccion enviada con exito al blockchain para el destinatario: ${recipient}`,
+      );
+
       // Intentamos minar el bloque inmediatamente para que quede consolidada la auditoria
       await this.minarBloque();
 
       return true;
     } catch (error) {
-      this.logger.error(`Fallo conexion con el nodo blockchain: ${error.message}`);
+      const err = error as Error;
+      this.logger.error(
+        `Fallo conexion con el nodo blockchain: ${err.message}`,
+      );
       return false;
     }
   }
@@ -53,11 +66,14 @@ export class BlockchainService {
    */
   private async minarBloque(): Promise<void> {
     try {
-      const response = await fetch(`${this.blockchainUrl}/api/blockchain/mine`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewardAddress: 'SYSTEM_AUDIT_MINER' }),
-      });
+      const response = await fetch(
+        `${this.blockchainUrl}/api/blockchain/mine`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rewardAddress: 'SYSTEM_AUDIT_MINER' }),
+        },
+      );
 
       if (!response.ok) {
         this.logger.warn(`No se pudo minar el bloque automaticamente.`);
@@ -66,7 +82,10 @@ export class BlockchainService {
         this.logger.log(`Bloque minado en blockchain: ${result.block?.hash}`);
       }
     } catch (error) {
-      this.logger.warn(`Fallo al intentar minar bloque en blockchain: ${error.message}`);
+      const err = error as Error;
+      this.logger.warn(
+        `Fallo al intentar minar bloque en blockchain: ${err.message}`,
+      );
     }
   }
 }
