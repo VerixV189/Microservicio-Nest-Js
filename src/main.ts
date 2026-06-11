@@ -5,9 +5,8 @@ import { graphqlUploadExpress } from 'graphql-upload-ts';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Habilitar CORS para permitir peticiones desde Angular
   app.enableCors({
-    origin: 'http://localhost:4200', // o '*' para permitir todo
+    origin: '*', // o '*' para permitir todo
     credentials: true,
   });
 
