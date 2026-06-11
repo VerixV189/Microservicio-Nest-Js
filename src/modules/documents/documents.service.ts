@@ -9,6 +9,7 @@ import {
   NivelAcceso,
 } from './entities/documento-permiso.entity';
 import { StorageService } from '../storage/storage.service';
+import { BlockchainService } from '../blockchain/blockchain.service';
 
 @Injectable()
 export class DocumentsService {
@@ -19,6 +20,7 @@ export class DocumentsService {
     private readonly documentoRepository: Repository<Documento>,
     private readonly storageService: StorageService,
     private readonly dataSource: DataSource,
+    private readonly blockchainService: BlockchainService,
   ) {}
 
   async crearDocumentoDesdeBuffer(
@@ -65,6 +67,20 @@ export class DocumentsService {
         documento: documentoGuardado,
       });
       await queryRunner.manager.save(auditoria);
+
+      // Registrar en el blockchain
+      await this.blockchainService.registrarTransaccion(
+        `DOCUMENT_AUDIT_${documentoGuardado.id}`,
+        {
+          accion: 'CREACION',
+          documentoId: documentoGuardado.id,
+          nombreOriginal,
+          mimeType,
+          tamano: buffer.length,
+          usuarioId,
+          s3Key,
+        },
+      );
 
       // 5. Asignar al usuario que sube como PROPIETARIO del documento
       const permiso = queryRunner.manager.create(DocumentoPermiso, {
@@ -114,6 +130,17 @@ export class DocumentsService {
       usuario_id: usuarioId,
       documento: doc,
     });
+
+    // Registrar en el blockchain
+    await this.blockchainService.registrarTransaccion(
+      `DOCUMENT_AUDIT_${doc.id}`,
+      {
+        accion: 'DESCARGA_URL_GENERADA',
+        documentoId: doc.id,
+        usuarioId,
+        s3Key: doc.s3_key,
+      },
+    );
     // Devuelve un link de Flocci válido por 3600 segundos (1 hora)
     return this.storageService.getPresignedUrl(doc.s3_key);
   }
@@ -150,6 +177,18 @@ export class DocumentsService {
         documento: doc,
       });
       await queryRunner.manager.save(auditoria);
+
+      // Registrar en el blockchain
+      await this.blockchainService.registrarTransaccion(
+        `DOCUMENT_AUDIT_${doc.id}`,
+        {
+          accion: 'ELIMINACION',
+          documentoId: doc.id,
+          usuarioId,
+          s3Key: doc.s3_key,
+          nombreOriginal: doc.nombre_original,
+        },
+      );
 
       await queryRunner.commitTransaction();
       return true;

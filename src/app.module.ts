@@ -8,6 +8,7 @@ import { join } from 'path';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BlockchainModule } from './modules/blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AuthModule } from './modules/auth/auth.module';
     StorageModule,
     DocumentsModule,
     AuthModule,
+    BlockchainModule,
   ],
   controllers: [],
   providers: [],
